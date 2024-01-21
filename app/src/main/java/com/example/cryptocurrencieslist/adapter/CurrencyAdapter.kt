@@ -62,6 +62,10 @@ class CurrencyAdapter : RecyclerView.Adapter<CurrencyAdapter.CurrencyViewHolder>
         }
     }
 
+    fun updateData() {
+        notifyDataSetChanged()
+    }
+
     fun clearCurrencyList() {
         currencyList.clear()
     }

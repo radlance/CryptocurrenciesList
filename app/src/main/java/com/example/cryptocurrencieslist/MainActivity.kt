@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptocurrencieslist.adapter.Currency
@@ -16,18 +18,17 @@ import com.example.cryptocurrencieslist.utils.convertTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
 
 class MainActivity : AppCompatActivity() {
     private val adapter = CurrencyAdapter()
     private lateinit var db: CurrenciesDB
     private lateinit var binding: ActivityMainBinding
     private lateinit var currencyApi: CurrencyApi
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,73 +43,68 @@ class MainActivity : AppCompatActivity() {
         setApiSettings()
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+
+        binding.currenciesRv.adapter = adapter
+        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
+
+        handler.post(object : Runnable {
+            override fun run() {
+                if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                            || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
+                    setInfo()
+                    handler.postDelayed(this, 3000)
+                    adapter.updateData()
+                }
+            }
+        })
+
+        if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                    || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
+            setInfo()
+            setCurrenciesList()
+        }
+
+
         if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                     || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
             setInfo()
         }
         Thread.sleep(500)
-        //TODO найти актуальные методы вызова метода без интернета и запуска setCurrenciesList после setInfo
+
         setCurrenciesList()
-//        updateInfo()
-    }
-
-    private fun setCurrenciesList() {
-
-        binding.currenciesRv.adapter = adapter
-        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
-        CoroutineScope(Dispatchers.Main).launch {
-            val currencyCount = withContext(Dispatchers.IO) {
-                db.getDAO().getInfoSize()
-            }
-            for (i in 0 until currencyCount) {
-
-                adapter.addCurrency(
-                    Currency(
-                        CryptoCompareApi.DEFAULT_URL + withContext(Dispatchers.IO) { db.getDAO().getImage()[i] },
-                        withContext(Dispatchers.IO) { db.getDAO().getCoinName()[i] },
-                        withContext(Dispatchers.IO) { db.getDAO().getPrice()[i] },
-                        convertTime(withContext(Dispatchers.IO) { db.getDAO().getLastUpdate()[i] })
-                    )
-                )
-            }
-        }
-//            adapter.clearCurrencyList()
-//            for (currency in it) {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    adapter.addCurrency(Currency(currency.Id,
-//                        currency.Name, db.getDAO().getPrice(),
-//                        convertTime(db.getDAO().getLastUpdate()))
-//                    )
-//                }
-//            }
-//            adapter.addCurrency(Currency("/media/44082045/sui.png", "BTC", 1.1, "11:00:00"))
-//        binding.currenciesRv.adapter = adapter
-//        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val currencyResponse = currencyApi.getTopCurrencyList().Data
-//            runOnUiThread {
-//                for (i in 0 until currencyResponse.size - 1) {
-//                    val currencyImage =
-//                        CryptoCompareApi.DEFAULT_URL + currencyResponse[i].CoinInfo.ImageUrl
-//                    adapter.addCurrency(
-//                        Currency(
-//                            currencyImage,
-//                            currencyResponse[i].CoinInfo.Name, currencyResponse[i].RAW.USD.PRICE,
-//                            convertTime(currencyResponse[i].RAW.USD.LASTUPDATE)
-//                        )
-//                    )
-//                }
+//        binding.updateButton.setOnClickListener {
+//            if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+//                        || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
+//                setInfo()
+//                Thread.sleep(500)
+//                adapter.updateData()
 //            }
 //        }
     }
 
+    private fun setCurrenciesList() {
+
+        CoroutineScope(Dispatchers.Main).launch {
+            db.getDAO().getPriceInfo().collect { currencies ->
+                adapter.clearCurrencyList()
+                currencies.forEach { currency ->
+                    adapter.addCurrency(Currency(CryptoCompareApi.DEFAULT_URL + currency.IMAGEURL,
+                      currency.FROMSYMBOL, currency.PRICE, convertTime(currency.LASTUPDATE)
+                    ))
+                }
+            }
+        }
+    }
+
     private fun setInfo() {
         CoroutineScope(Dispatchers.IO).launch {
-            val currencyResponse = currencyApi.getTopCurrencyList().Data
-            for (i in 0 until currencyResponse.size - 1) {
+//            db.getDAO().cleanInfo()
+//            db.getDAO().clearPrice()
+            for (i in 0 until currencyApi.getTopCurrencyList().Data.size - 1) {
                 try {
-                    db.getDAO().insertCurrency(currencyResponse[i].RAW.USD)
-                    db.getDAO().insertCoinInfo(currencyResponse[i].CoinInfo)
+                    val currency = currencyApi.getTopCurrencyList().Data[i]
+                    db.getDAO().insertCurrency(currency.RAW.USD)
+                    db.getDAO().insertCoinInfo(currency.CoinInfo)
                 }
                 catch (e: NullPointerException) {
                     continue
@@ -116,9 +112,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    //TODO set data  from database
-
     private fun setApiSettings() {
 
         val interceptor = HttpLoggingInterceptor()

@@ -2,9 +2,11 @@ package com.example.cryptocurrencieslist.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.cryptocurrencieslist.adapter.Currency
 import com.example.cryptocurrencieslist.retrofit.data.CoinInfo
 import com.example.cryptocurrencieslist.retrofit.data.RAW
@@ -14,22 +16,22 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CurrenciesDAO {
     @Query("SELECT * FROM price ORDER BY LASTUPDATE DESC")
-    fun getPriceInfo(): List<USD>
+    fun getPriceInfo(): Flow<List<USD>>
 
     @Query("SELECT FROMSYMBOL FROM price ORDER BY LASTUPDATE DESC")
-    fun getCoinName(): List<String>
+    fun getCoinName(): Flow<List<String>>
 
     @Query("SELECT PRICE FROM price ORDER BY LASTUPDATE DESC")
-    fun getPrice(): List<Double>
+    fun getPrice(): Flow<List<Double>>
 
     @Query("SELECT LASTUPDATE FROM price ORDER BY LASTUPDATE DESC")
-    fun getLastUpdate(): List<Long>
+    fun getLastUpdate(): Flow<List<Long>>
 
     @Query("SELECT IMAGEURL FROM price ORDER BY LASTUPDATE DESC")
-    fun getImage(): List<String>
+    fun getImage(): Flow<List<String>>
 
     @Query("SELECT COUNT(*) FROM price")
-    fun getInfoSize(): Int
+    fun getInfoSize(): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCurrency(usd: USD)
