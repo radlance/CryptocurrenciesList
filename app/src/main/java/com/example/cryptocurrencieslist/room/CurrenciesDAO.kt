@@ -15,19 +15,19 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CurrenciesDAO {
-    @Query("SELECT * FROM price ORDER BY LASTUPDATE DESC")
+    @Query("SELECT * FROM price ORDER BY LASTUPDATE DESC, PRICE DESC")
     fun getPriceInfo(): Flow<List<USD>>
 
-    @Query("SELECT FROMSYMBOL FROM price ORDER BY LASTUPDATE DESC")
+    @Query("SELECT FROMSYMBOL FROM price ORDER BY LASTUPDATE DESC, PRICE DESC")
     fun getCoinName(): Flow<List<String>>
 
-    @Query("SELECT PRICE FROM price ORDER BY LASTUPDATE DESC")
+    @Query("SELECT PRICE FROM price ORDER BY LASTUPDATE DESC, PRICE DESC")
     fun getPrice(): Flow<List<Double>>
 
-    @Query("SELECT LASTUPDATE FROM price ORDER BY LASTUPDATE DESC")
+    @Query("SELECT LASTUPDATE FROM price ORDER BY LASTUPDATE DESC, PRICE DESC")
     fun getLastUpdate(): Flow<List<Long>>
 
-    @Query("SELECT IMAGEURL FROM price ORDER BY LASTUPDATE DESC")
+    @Query("SELECT IMAGEURL FROM price ORDER BY LASTUPDATE DESC, PRICE DESC")
     fun getImage(): Flow<List<String>>
 
     @Query("SELECT COUNT(*) FROM price")

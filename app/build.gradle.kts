@@ -50,6 +50,8 @@ dependencies {
     runtimeOnly("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0-rc02")
     kapt("androidx.room:room-compiler:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
+    runtimeOnly("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

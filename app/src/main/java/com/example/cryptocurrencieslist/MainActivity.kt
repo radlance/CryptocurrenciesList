@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var currencyApi: CurrencyApi
     private val handler = Handler(Looper.getMainLooper())
+    private var responseSize = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +41,13 @@ class MainActivity : AppCompatActivity() {
         db = CurrenciesDB.getInstance(this)
 
         adapter.clearCurrencyList()
+
         setApiSettings()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            responseSize = currencyApi.getTopCurrencyList().Data.size - 1
+        }
+
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
 
@@ -52,24 +59,11 @@ class MainActivity : AppCompatActivity() {
                 if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                             || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
                     setInfo()
-                    handler.postDelayed(this, 3000)
+                    handler.postDelayed(this, 5000)
                     adapter.updateData()
                 }
             }
         })
-
-        if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                    || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
-            setInfo()
-            setCurrenciesList()
-        }
-
-
-        if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                    || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
-            setInfo()
-        }
-        Thread.sleep(500)
 
         setCurrenciesList()
 //        binding.updateButton.setOnClickListener {
@@ -100,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
 //            db.getDAO().cleanInfo()
 //            db.getDAO().clearPrice()
-            for (i in 0 until currencyApi.getTopCurrencyList().Data.size - 1) {
+            for (i in 0 until responseSize) {
                 try {
                     val currency = currencyApi.getTopCurrencyList().Data[i]
                     db.getDAO().insertCurrency(currency.RAW.USD)
