@@ -14,7 +14,7 @@ import com.squareup.picasso.Picasso
 import java.lang.Exception
 
 class CurrencyAdapter : RecyclerView.Adapter<CurrencyAdapter.CurrencyViewHolder>() {
-
+    var listener: OnCurrencyClickListener? = null
     private val currencyList: MutableList<Currency> = ArrayList()
 
     class CurrencyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -53,6 +53,9 @@ class CurrencyAdapter : RecyclerView.Adapter<CurrencyAdapter.CurrencyViewHolder>
 
     override fun onBindViewHolder(holder: CurrencyViewHolder, position: Int) {
         holder.bind(currencyList[position])
+        holder.itemView.setOnClickListener {
+            listener?.onCurrencyClick(currencyList[position])
+        }
     }
 
     fun addCurrency(currency: Currency) {

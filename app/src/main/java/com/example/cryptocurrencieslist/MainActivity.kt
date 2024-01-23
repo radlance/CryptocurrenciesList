@@ -1,6 +1,7 @@
 package com.example.cryptocurrencieslist
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptocurrencieslist.adapter.Currency
 import com.example.cryptocurrencieslist.adapter.CurrencyAdapter
+import com.example.cryptocurrencieslist.adapter.OnCurrencyClickListener
 import com.example.cryptocurrencieslist.databinding.ActivityMainBinding
 import com.example.cryptocurrencieslist.retrofit.CryptoCompareApi
 import com.example.cryptocurrencieslist.retrofit.CurrencyApi
@@ -40,10 +42,35 @@ class MainActivity : AppCompatActivity() {
 
         db = CurrenciesDB.getInstance(this)
 
-        adapter.clearCurrencyList()
-
+        setRecyclerView()
         setApiSettings()
 
+        setDataBaseSettings()
+        setCurrenciesList()
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        //TODO сделать приостановку mainactivity и продолжение
+    }
+
+    private fun setRecyclerView() {
+        adapter.listener = object : OnCurrencyClickListener {
+            override fun onCurrencyClick(currency: Currency) {
+                val intent = Intent(this@MainActivity, CurrencyInfoActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        binding.currenciesRv.adapter = adapter
+        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
+    }
+
+
+    private fun setDataBaseSettings() {
         CoroutineScope(Dispatchers.IO).launch {
             responseSize = currencyApi.getTopCurrencyList().Data.size - 1
         }
@@ -51,29 +78,20 @@ class MainActivity : AppCompatActivity() {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
 
-        binding.currenciesRv.adapter = adapter
-        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
-
         handler.post(object : Runnable {
             override fun run() {
                 if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                             || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
+                    setApiSettings()
+                    setRecyclerView()
+                    setCurrenciesList()
                     setInfo()
-                    handler.postDelayed(this, 5000)
+                    //TODO вызвать метод после
                     adapter.updateData()
+                    handler.postDelayed(this, 3000)
                 }
             }
         })
-
-        setCurrenciesList()
-//        binding.updateButton.setOnClickListener {
-//            if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-//                        || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
-//                setInfo()
-//                Thread.sleep(500)
-//                adapter.updateData()
-//            }
-//        }
     }
 
     private fun setCurrenciesList() {
@@ -92,11 +110,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun setInfo() {
         CoroutineScope(Dispatchers.IO).launch {
+            val dataList = currencyApi.getTopCurrencyList().Data
 //            db.getDAO().cleanInfo()
 //            db.getDAO().clearPrice()
             for (i in 0 until responseSize) {
                 try {
-                    val currency = currencyApi.getTopCurrencyList().Data[i]
+                    val currency = dataList[i]
                     db.getDAO().insertCurrency(currency.RAW.USD)
                     db.getDAO().insertCoinInfo(currency.CoinInfo)
                 }

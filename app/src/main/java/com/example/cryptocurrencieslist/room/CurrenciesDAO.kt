@@ -38,4 +38,5 @@ interface CurrenciesDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoinInfo(coinInfo: CoinInfo)
+
 }
