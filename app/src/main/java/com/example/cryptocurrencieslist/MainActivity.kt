@@ -42,11 +42,16 @@ class MainActivity : AppCompatActivity() {
 
         db = CurrenciesDB.getInstance(this)
 
-        setRecyclerView()
-        setApiSettings()
 
-        setDataBaseSettings()
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        setApiSettings()
+        setRecyclerView()
         setCurrenciesList()
+        if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                    || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
+            setDataBaseSettings()
+        }
     }
 
     override fun onPause() {
@@ -56,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         //TODO сделать приостановку mainactivity и продолжение
+        //TODO создать viewModel
     }
 
     private fun setRecyclerView() {
@@ -80,16 +86,13 @@ class MainActivity : AppCompatActivity() {
 
         handler.post(object : Runnable {
             override fun run() {
-                if (networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                            || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))) {
-                    setApiSettings()
-                    setRecyclerView()
-                    setCurrenciesList()
-                    setInfo()
-                    //TODO вызвать метод после
-                    adapter.updateData()
-                    handler.postDelayed(this, 3000)
-                }
+                setApiSettings()
+                setRecyclerView()
+                setCurrenciesList()
+                setInfo()
+                //TODO вызвать метод после
+                adapter.updateData()
+                handler.postDelayed(this, 3000)
             }
         })
     }
