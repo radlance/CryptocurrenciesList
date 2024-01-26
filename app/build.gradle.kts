@@ -47,7 +47,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.12")
     implementation ("androidx.room:room-ktx:2.6.1")
     implementation("com.squareup.picasso:picasso:2.71828")
-    runtimeOnly("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0-rc02")
+    runtimeOnly("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     kapt("androidx.room:room-compiler:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     runtimeOnly("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

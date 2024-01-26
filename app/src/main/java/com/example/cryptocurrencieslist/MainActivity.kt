@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
 
         db = CurrenciesDB.getInstance(this)
 
+        binding.currenciesRv.adapter = adapter
+        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
@@ -54,25 +56,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //TODO сделать приостановку mainactivity и продолжение
-        //TODO создать viewModel
-    }
-
     private fun setRecyclerView() {
         adapter.listener = object : OnCurrencyClickListener {
             override fun onCurrencyClick(currency: Currency) {
                 val intent = Intent(this@MainActivity, CurrencyInfoActivity::class.java)
+                intent.putExtra("NAME", currency.currencyName)
                 startActivity(intent)
             }
         }
-        binding.currenciesRv.adapter = adapter
-        binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
     }
 
 
@@ -80,10 +71,6 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             responseSize = currencyApi.getTopCurrencyList().Data.size - 1
         }
-
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-
         handler.post(object : Runnable {
             override fun run() {
                 setApiSettings()
