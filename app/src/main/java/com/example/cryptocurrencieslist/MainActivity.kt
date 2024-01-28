@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptocurrencieslist.adapter.Currency
 import com.example.cryptocurrencieslist.adapter.CurrencyAdapter
@@ -24,6 +25,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
 
 class MainActivity : AppCompatActivity() {
     private val adapter = CurrencyAdapter()
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.currenciesRv.adapter = adapter
         binding.currenciesRv.layoutManager = LinearLayoutManager(this@MainActivity)
+
 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
@@ -77,7 +80,6 @@ class MainActivity : AppCompatActivity() {
                 setRecyclerView()
                 setCurrenciesList()
                 setInfo()
-                //TODO вызвать метод после
                 adapter.updateData()
                 handler.postDelayed(this, 3000)
             }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CryptocurrenciesList</string>
+    <string name="app_name">Crypto</string>
     <string name="btc_usd">BTC / USD</string>
     <string name="update">update</string>
     <string name="currency">currency</string>
