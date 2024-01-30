@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+
         setApiSettings()
         setRecyclerView()
         setCurrenciesList()
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
                 setCurrenciesList()
                 setInfo()
                 adapter.updateData()
-                handler.postDelayed(this, 3000)
+                handler.postDelayed(this, 5000)
             }
         })
     }
